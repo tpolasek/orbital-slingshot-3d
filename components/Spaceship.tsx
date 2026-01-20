@@ -47,6 +47,11 @@ export const Spaceship = () => {
   };
 
   useEffect(() => {
+    // Reset tracer when switching levels
+    setTracerPoints([]);
+  }, [currentLevelIndex]);
+
+  useEffect(() => {
     // Reset ship when level or status changes to IDLE
     if (status === GameStatus.IDLE) {
       position.current.set(...level.shipStart);
