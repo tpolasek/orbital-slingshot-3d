@@ -195,8 +195,8 @@ export const Spaceship = () => {
             rotation={[aimPitch.current, aimYaw.current, 0, 'YXZ']}
          >
              {/* Guide Line sticking out along +Z */}
-             <mesh position={[0, 0, 2.5]}>
-                <boxGeometry args={[0.05, 0.05, 5]} />
+             <mesh position={[0, 0, power / 2]}>
+                <boxGeometry args={[0.05, 0.05, power]} />
                 <meshBasicMaterial color="rgba(100, 255, 100, 0.5)" transparent opacity={0.6} />
              </mesh>
          </group>
