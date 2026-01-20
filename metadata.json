@@ -1,0 +1,5 @@
+{
+  "name": "Orbital Slingshot",
+  "description": "A 3D physics trajectory game. Aim your ship, charge your engines, and use planetary gravity to slingshot your way to the warp target.",
+  "requestFramePermissions": []
+}
