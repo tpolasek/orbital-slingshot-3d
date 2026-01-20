@@ -189,7 +189,7 @@ export const Spaceship = () => {
       </group>
       
       {/* Trajectory Guide (Only when aiming) */}
-      {(status === GameStatus.IDLE || status === GameStatus.CHARGING) && (
+      {(status === GameStatus.CHARGING) && (
          <group 
             position={new Vector3(...level.shipStart)} 
             rotation={[aimPitch.current, aimYaw.current, 0, 'YXZ']}
