@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+import { Line } from '@react-three/drei';
 import { Vector3, Quaternion, Euler, Group } from 'three';
 import { useGameStore } from '../store';
 import { GameStatus } from '../types';
@@ -24,6 +25,10 @@ export const Spaceship = () => {
   
   // Input State
   const keys = useRef<{ [key: string]: boolean }>({});
+
+  // Tracer State
+  const [tracerPoints, setTracerPoints] = useState<Vector3[]>([]);
+  const lastTracerUpdate = useRef(0);
 
   // Helper to point ship at target initially
   const lookAtTarget = () => {
@@ -79,6 +84,10 @@ export const Spaceship = () => {
         
         // Save attempt
         setLastAttempt(power, aimPitch.current, aimYaw.current);
+
+        // Reset tracer
+        setTracerPoints([position.current.clone()]);
+        lastTracerUpdate.current = 0; // Reset timer
 
         // Calculate launch vector based on current rotation
         const rotation = new Euler(aimPitch.current, aimYaw.current, 0, 'YXZ');
@@ -156,6 +165,12 @@ export const Spaceship = () => {
       // 3. Update Visuals
       shipRef.current.position.copy(position.current);
       
+      // Update Tracer
+      if (state.clock.elapsedTime - lastTracerUpdate.current > 0.1) { // 100ms
+          setTracerPoints(prev => [...prev, position.current.clone()]);
+          lastTracerUpdate.current = state.clock.elapsedTime;
+      }
+
       // Rotate ship to face velocity vector
       if (velocity.current.lengthSq() > 0.1) {
           const target = position.current.clone().add(velocity.current);
@@ -195,6 +210,21 @@ export const Spaceship = () => {
 
         <axesHelper args={[2]} scale={[1, 1, 3]} /> 
       </group>
+
+      {/* Trajectory Tracer */}
+      {tracerPoints.length > 1 && (
+        <Line 
+          points={tracerPoints} 
+          color="red" 
+          opacity={1} 
+          transparent 
+          lineWidth={1} 
+          dashed
+          dashScale={2} 
+          dashSize={0.5} 
+          gapSize={0.2}
+        />
+      )}
       
       {/* Trajectory Guide (Only when aiming) */}
       {(status === GameStatus.CHARGING) && (
