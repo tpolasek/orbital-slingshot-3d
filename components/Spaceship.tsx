@@ -185,7 +185,7 @@ export const Spaceship = () => {
           <pointLight position={[0, 0, -1]} distance={3} color="#00ff00" intensity={2} />
         )}
 
-        <axesHelper args={[2]} /> 
+        <axesHelper args={[2]} scale={[1, 1, 3]} /> 
       </group>
       
       {/* Trajectory Guide (Only when aiming) */}
