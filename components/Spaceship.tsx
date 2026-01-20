@@ -9,7 +9,7 @@ const TEMP_VEC3 = new Vector3();
 const TEMP_DIR = new Vector3();
 
 export const Spaceship = () => {
-  const { currentLevelIndex, status, setStatus, power, setPower } = useGameStore();
+  const { currentLevelIndex, status, setStatus, power, setPower, lastAttempt, setLastAttempt } = useGameStore();
   const level = LEVELS[currentLevelIndex];
 
   const shipRef = useRef<Group>(null);
@@ -47,14 +47,19 @@ export const Spaceship = () => {
       position.current.set(...level.shipStart);
       velocity.current.set(0, 0, 0);
       
-      lookAtTarget();
+      if (lastAttempt) {
+        aimYaw.current = lastAttempt.yaw;
+        aimPitch.current = lastAttempt.pitch;
+      } else {
+        lookAtTarget();
+      }
       
       if (shipRef.current) {
         shipRef.current.position.copy(position.current);
         shipRef.current.rotation.set(aimPitch.current, aimYaw.current, 0, 'YXZ');
       }
     }
-  }, [status, currentLevelIndex, level]);
+  }, [status, currentLevelIndex, level, lastAttempt]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -72,6 +77,9 @@ export const Spaceship = () => {
         // LAUNCH!
         setStatus(GameStatus.FLYING);
         
+        // Save attempt
+        setLastAttempt(power, aimPitch.current, aimYaw.current);
+
         // Calculate launch vector based on current rotation
         const rotation = new Euler(aimPitch.current, aimYaw.current, 0, 'YXZ');
         // Ship is visually aligned to +Z. Launch along +Z.
@@ -88,7 +96,7 @@ export const Spaceship = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [status, power, setStatus]);
+  }, [status, power, setStatus, setLastAttempt]);
 
   useFrame((state, delta) => {
     if (!shipRef.current) return;
@@ -198,6 +206,20 @@ export const Spaceship = () => {
              <mesh position={[0, 0, power / 2]}>
                 <boxGeometry args={[0.05, 0.05, power]} />
                 <meshBasicMaterial color="rgba(100, 255, 100, 0.5)" transparent opacity={0.6} />
+             </mesh>
+         </group>
+      )}
+
+      {/* Last Attempt Ghost Marker (Only when Aiming) */}
+      {(status === GameStatus.IDLE || status === GameStatus.CHARGING) && lastAttempt && (
+          <group 
+            position={new Vector3(...level.shipStart)} 
+            rotation={[lastAttempt.pitch, lastAttempt.yaw, 0, 'YXZ']}
+         >
+             {/* Ghost Line */}
+             <mesh position={[0, 0, lastAttempt.power / 2]}>
+                <boxGeometry args={[0.02, 0.02, lastAttempt.power]} />
+                <meshBasicMaterial color="rgba(255, 100, 100, 0.3)" transparent opacity={0.4} />
              </mesh>
          </group>
       )}
