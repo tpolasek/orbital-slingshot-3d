@@ -1,4 +1,5 @@
 import { LevelConfig } from './types';
+import { generateRandomLevel } from './levelGenerator';
 
 export const GRAVITY_CONSTANT = 20;
 export const MAX_POWER = 25;
@@ -6,19 +7,10 @@ export const POWER_CHARGE_RATE = 20; // Units per second
 export const SHIP_RADIUS = 0.5;
 export const TARGET_RADIUS = 1.5;
 
-/*
-✓ Attempt 20: Found match! Success rate: 8.612%
-  Planets: 2
-  Ship: [-4.5, -3.4, 12.3]
-  Target: [4.4, 0.7, -11.3]
-  Planets config:
-    P1: pos=[8.4, -1.0, 1.2], r=2.1, m=55.7
-    P2: pos=[-7.1, -1.6, -1.2], r=1.9, m=62.8
-*/
 export const LEVELS: LevelConfig[] = [
-  
+  generateRandomLevel(1, 5),
   {
-    id: 1,
+    id: 2,
     name: "The Easy One",
     shipStart: [-4.5, -3.4, 12.3],
     targetPosition: [4.4, 0.7, -11.3],
@@ -29,7 +21,7 @@ export const LEVELS: LevelConfig[] = [
     cameraStart: [20, 10, 20]
   },
   {
-    id: 1,
+    id: 3,
     name: "The First Slingshot",
     shipStart: [0, 0, 15],
     targetPosition: [0, 0, -15],
@@ -39,7 +31,7 @@ export const LEVELS: LevelConfig[] = [
     cameraStart: [20, 10, 20]
   },
   {
-    id: 2,
+    id: 4,
     name: "Binary Gravity",
     shipStart: [-15, 0, 15],
     targetPosition: [15, 0, -15],
@@ -50,7 +42,7 @@ export const LEVELS: LevelConfig[] = [
     cameraStart: [0, 30, 0]
   },
   {
-    id: 3,
+    id: 5,
     name: "Asteroid Field",
     shipStart: [0, 15, 0],
     targetPosition: [0, -15, 0],
