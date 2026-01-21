@@ -8,7 +8,7 @@
  */
 
 import { PhysicsSimulation, simulateShot, PhysicsSimulation as Sim } from './physics';
-import { LEVELS } from './constants';
+import { LEVELS, MAX_POWER } from './constants';
 
 // Helper to format a vector for display
 function fmt(v: number[]): string {
@@ -106,29 +106,36 @@ console.log('\n' + '='.repeat(60));
 console.log('TEST 7: Batch testing - searching for winning angle');
 console.log('='.repeat(60));
 
-function findWinningShot(levelIndex: number, pitchRange: [number, number], yawRange: [number, number], power: number) {
+function findWinningShot(levelIndex: number) {
   const level = LEVELS[levelIndex];
-  const [pMin, pMax] = pitchRange;
-  const [yMin, yMax] = yawRange;
+  const pMin = -Math.PI / 2;
+  const pMax = Math.PI / 2;
+  const yMin = -Math.PI;
+  const yMax = Math.PI;
 
   let wins = 0;
   let tests = 0;
 
-  for (let p = pMin; p <= pMax; p += 0.1) {
-    for (let y = yMin; y <= yMax; y += 0.1) {
-      tests++;
-      const result = simulateShot(level, p, y, power);
-      if (result.result === 'won') {
-        wins++;
-        console.log(`FOUND WINNER: pitch=${p.toFixed(2)}, yaw=${y.toFixed(2)}, power=${power}`);
+  // Don't bother with little power.
+  for (let power = 5; power <= MAX_POWER; power++) {
+    for (let p = pMin; p <= pMax; p += 0.2) {
+      for (let y = yMin; y <= yMax; y += 0.2) {
+        tests++;
+        const result = simulateShot(level, p, y, power);
+        if (result.result === 'won') {
+          wins++;
+          //console.log(`FOUND WINNER: pitch=${p.toFixed(2)}, yaw=${y.toFixed(2)}, power=${power}`);
+        }
       }
     }
   }
 
-  console.log(`Tested ${tests} combinations, found ${wins} winning shots (${(wins / tests * 100).toFixed(1)}% success rate)`);
+  console.log(`Level: ${levelIndex} Tested ${tests} combinations, found ${wins} winning shots (${(wins / tests * 100.0).toFixed(1)}% success rate)`);
 }
 
-findWinningShot(0, -0.1, 0.1, -0.1, 0.1, 15);
+findWinningShot(0);
+findWinningShot(1);
+findWinningShot(2);
 
 // Test 8: Using custom simulation config
 console.log('\n' + '='.repeat(60));

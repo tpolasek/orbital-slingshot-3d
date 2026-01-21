@@ -138,6 +138,9 @@ export const Spaceship = () => {
       // Clamp Pitch to avoid gimbal lock/weirdness
       aimPitch.current = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, aimPitch.current));
 
+      // Wrap Yaw to [-π, π] range (360° rotation)
+      aimYaw.current = Math.atan2(Math.sin(aimYaw.current), Math.cos(aimYaw.current));
+
       shipRef.current.rotation.set(aimPitch.current, aimYaw.current, 0, 'YXZ');
       shipRef.current.position.copy(position.current);
     }
