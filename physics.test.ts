@@ -46,11 +46,11 @@ function testShot(levelIndex: number, pitch: number, yaw: number, power: number)
   return result;
 }
 
-// Test 1: Direct shot on Level 1 (should work with no gravity influence)
+// Test 1: Level 1 pass
 console.log('='.repeat(60));
-console.log('TEST 1: Level 1 - Direct shot (should hit target)');
+console.log('TEST 1: Level 1 - Direct shot (should hit target X)');
 console.log('='.repeat(60));
-testShot(0, 0, 0, 15); // Direct shot, no pitch/yaw, moderate power
+testShot(0, -0.8000, 3.1416, 11.68); 
 
 // Test 2: Off-target shot on Level 1
 console.log('\n' + '='.repeat(60));

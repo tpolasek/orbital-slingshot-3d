@@ -85,6 +85,7 @@ export const Spaceship = () => {
 
       if (e.code === 'Space' && status === GameStatus.CHARGING) {
         // LAUNCH!
+        console.log(`Launch - Pitch: ${aimPitch.current.toFixed(4)}, Yaw: ${aimYaw.current.toFixed(4)}, Power: ${power.toFixed(2)}`);
         setStatus(GameStatus.FLYING);
 
         // Save attempt
