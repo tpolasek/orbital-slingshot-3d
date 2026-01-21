@@ -12,7 +12,7 @@ function randomColor(): string {
 export function generateRandomLevel(id: number, maxPlanets: number): LevelConfig {
   // Ship and target positions
   const shipStart: [number, number, number] = [0, 0, 0];
-  const shipToTargetDistance = randomInRange(30, 60);
+  const shipToTargetDistance = randomInRange(30, 70);
   const targetPosition: [number, number, number] = [0, 0, -shipToTargetDistance];
 
   // Calculate midpoint to place planets near the ship's path

@@ -31,7 +31,7 @@ function GameScene() {
       <OrbitControls 
         makeDefault 
         minDistance={5} 
-        maxDistance={100}
+        maxDistance={150}
       />
     </>
   );

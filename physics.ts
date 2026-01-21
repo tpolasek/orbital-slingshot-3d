@@ -56,7 +56,7 @@ export class PhysicsSimulation {
       gravityConstant: config.gravityConstant ?? GRAVITY_CONSTANT,
       shipRadius: config.shipRadius ?? SHIP_RADIUS,
       targetRadius: config.targetRadius ?? TARGET_RADIUS,
-      maxDistance: config.maxDistance ?? 100,
+      maxDistance: config.maxDistance ?? 150,
       level: config.level,
     };
 
