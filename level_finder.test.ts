@@ -1,17 +1,17 @@
 /**
- * Level difficulty test
- *
- * Analyzes a level to find how many winning shot combinations exist.
- *
+ * Level finder
+ * Create a level and then
+ * Analyzes the level to find how many winning shot combinations exist.
+ * It targets a specified success %
  * Run with: npx tsx level.test.ts <levelNumber>
  * Example: npx tsx level.test.ts 0
  */
 
 import { simulateShot } from './physics';
 import { LEVELS, MAX_POWER } from './constants';
+import { LevelConfig } from './types';
 
-function findWinningShot(levelIndex: number) {
-  const level = LEVELS[levelIndex-1];
+function findWinningShot(level: LevelConfig) {
   const pMin = -Math.PI / 2;
   const pMax = Math.PI / 2;
   const yMin = -Math.PI;
@@ -34,20 +34,20 @@ function findWinningShot(levelIndex: number) {
   }
   const success_rate = (wins / tests * 100.0);
 
-  console.log(`Level ${levelIndex}: ${level.name}`);
+  console.log(`Level: ${level.name}`);
   console.log(`Success_Rate=${success_rate.toFixed(1)}%`);
 }
 
-let levelNum = parseInt(process.argv[2], 10);
-if (isNaN(levelNum)) {
-  console.log('Usage: npx tsx level.test.ts <levelNumber>');
-  console.log(`Available levels: 0-${LEVELS.length - 1}`);
+//findWinningShot(LEVELS[levelNum-1]);
+
+
+let targetPercent = parseFloat(process.argv[2]);
+if (isNaN(targetPercent)) {
+  console.log('Usage: npx tsx level.test.ts <targetPercent>');
   process.exit(1);
 }
+console.log(`Target test percent ${targetPercent}`);
 
-if (levelNum <= 0 || levelNum > LEVELS.length) {
-  console.log(`Invalid level number. Must be between 1 and ${LEVELS.length}`);
-  process.exit(1);
-}
 
-findWinningShot(levelNum);
+
+findWinningShot(LEVELS[0]);
