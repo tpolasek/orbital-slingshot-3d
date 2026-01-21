@@ -101,45 +101,9 @@ for (let i = 0; i < 10; i++) {
   }
 }
 
-// Test 7: Batch testing multiple angles
+// Test 7: Using custom simulation config
 console.log('\n' + '='.repeat(60));
-console.log('TEST 7: Batch testing - searching for winning angle');
-console.log('='.repeat(60));
-
-function findWinningShot(levelIndex: number) {
-  const level = LEVELS[levelIndex];
-  const pMin = -Math.PI / 2;
-  const pMax = Math.PI / 2;
-  const yMin = -Math.PI;
-  const yMax = Math.PI;
-
-  let wins = 0;
-  let tests = 0;
-
-  // Don't bother with little power.
-  for (let power = 5; power <= MAX_POWER; power++) {
-    for (let p = pMin; p <= pMax; p += 0.2) {
-      for (let y = yMin; y <= yMax; y += 0.2) {
-        tests++;
-        const result = simulateShot(level, p, y, power);
-        if (result.result === 'won') {
-          wins++;
-          //console.log(`FOUND WINNER: pitch=${p.toFixed(2)}, yaw=${y.toFixed(2)}, power=${power}`);
-        }
-      }
-    }
-  }
-
-  console.log(`Level: ${levelIndex} Tested ${tests} combinations, found ${wins} winning shots (${(wins / tests * 100.0).toFixed(1)}% success rate)`);
-}
-
-findWinningShot(0);
-findWinningShot(1);
-findWinningShot(2);
-
-// Test 8: Using custom simulation config
-console.log('\n' + '='.repeat(60));
-console.log('TEST 8: Custom simulation config (low gravity)');
+console.log('TEST 7: Custom simulation config (low gravity)');
 console.log('='.repeat(60));
 
 const customResult = simulateShot(LEVELS[0], 0, 0, 15, { gravityConstant: 5 });
@@ -153,4 +117,4 @@ console.log('All tests completed!');
 console.log('='.repeat(60));
 
 // Export for use in other test files
-export { testShot, findWinningShot };
+export { testShot };
