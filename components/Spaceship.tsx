@@ -1,28 +1,28 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useRef, useState, useEffect } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { Line } from '@react-three/drei';
-import { Vector3, Quaternion, Euler, Group } from 'three';
+import { Vector3, Group } from 'three';
 import { useGameStore } from '../store';
 import { GameStatus } from '../types';
-import { GRAVITY_CONSTANT, MAX_POWER, POWER_CHARGE_RATE, LEVELS, SHIP_RADIUS, TARGET_RADIUS } from '../constants';
-
-const TEMP_VEC3 = new Vector3();
-const TEMP_DIR = new Vector3();
+import { MAX_POWER, POWER_CHARGE_RATE, LEVELS } from '../constants';
+import { PhysicsSimulation, PhysicsState } from '../physics';
 
 export const Spaceship = () => {
   const { currentLevelIndex, status, setStatus, power, setPower, lastAttempt, setLastAttempt } = useGameStore();
   const level = LEVELS[currentLevelIndex];
 
   const shipRef = useRef<Group>(null);
-  
-  // Physics State
+
+  // Physics simulation instance (created on launch)
+  const physicsSim = useRef<PhysicsSimulation | null>(null);
+
+  // Visual position/velocity (kept in sync with physics sim)
   const position = useRef(new Vector3(...level.shipStart));
-  const velocity = useRef(new Vector3(0, 0, 0));
-  
+
   // Aiming State (Euler angles in radians)
   const aimYaw = useRef(0);
   const aimPitch = useRef(0);
-  
+
   // Input State
   const keys = useRef<{ [key: string]: boolean }>({});
 
@@ -55,15 +55,15 @@ export const Spaceship = () => {
     // Reset ship when level or status changes to IDLE
     if (status === GameStatus.IDLE) {
       position.current.set(...level.shipStart);
-      velocity.current.set(0, 0, 0);
-      
+      physicsSim.current = null; // Clear physics simulation, this is initialized during launch
+
       if (lastAttempt) {
         aimYaw.current = lastAttempt.yaw;
         aimPitch.current = lastAttempt.pitch;
       } else {
         lookAtTarget();
       }
-      
+
       if (shipRef.current) {
         shipRef.current.position.copy(position.current);
         shipRef.current.rotation.set(aimPitch.current, aimYaw.current, 0, 'YXZ');
@@ -86,21 +86,28 @@ export const Spaceship = () => {
       if (e.code === 'Space' && status === GameStatus.CHARGING) {
         // LAUNCH!
         setStatus(GameStatus.FLYING);
-        
+
         // Save attempt
         setLastAttempt(power, aimPitch.current, aimYaw.current);
 
-        // Reset tracer
-        setTracerPoints([position.current.clone()]);
-        lastTracerUpdate.current = 0; // Reset timer
+        // Initialize physics simulation with launch parameters
+        const initialVelocity = PhysicsSimulation.calculateInitialVelocity(
+          aimPitch.current,
+          aimYaw.current,
+          Math.max(power, 1) // Minimum power 1 to move
+        );
 
-        // Calculate launch vector based on current rotation
-        const rotation = new Euler(aimPitch.current, aimYaw.current, 0, 'YXZ');
-        // Ship is visually aligned to +Z. Launch along +Z.
-        const direction = new Vector3(0, 0, 1).applyEuler(rotation);
-        
-        // Apply velocity magnitude based on accumulated power
-        velocity.current.copy(direction.multiplyScalar(Math.max(power, 1))); // Minimum power 1 to move
+        const initialState: PhysicsState = {
+          position: level.shipStart,
+          velocity: initialVelocity,
+        };
+
+        // init physics sim with initial conditions.
+        physicsSim.current = new PhysicsSimulation(initialState, { level });
+
+        // Reset tracer
+        setTracerPoints([new Vector3(...level.shipStart)]);
+        lastTracerUpdate.current = 0; // Reset timer
       }
     };
 
@@ -141,56 +148,38 @@ export const Spaceship = () => {
     }
 
     // --- PHYSICS & MOVEMENT (When Flying) ---
-    if (status === GameStatus.FLYING) {
-      
-      // 1. Calculate and Apply Forces (Gravity)
-      // We do this BEFORE updating position for Semi-Implicit Euler integration, 
-      // which is more stable for orbits than Standard Euler.
-      level.planets.forEach(planet => {
-        const pPos = new Vector3(...planet.position);
-        const distSq = pPos.distanceToSquared(position.current);
-        const dist = Math.sqrt(distSq);
-        
-        if (dist > planet.radius + SHIP_RADIUS) { 
-           const forceMagnitude = (GRAVITY_CONSTANT * planet.mass) / distSq;
-           TEMP_DIR.copy(pPos).sub(position.current).normalize();
-           // v = v + a * dt
-           velocity.current.add(TEMP_DIR.multiplyScalar(forceMagnitude * delta));
-        } else {
-            // Collision with Planet
-            setStatus(GameStatus.LOST);
-        }
-      });
+    if (status === GameStatus.FLYING && physicsSim.current) {
+      // Step the physics simulation
+      const physicsStepResult = physicsSim.current.step(delta);
 
-      // 2. Apply Velocity to Position
-      // p = p + v * dt
-      const moveStep = velocity.current.clone().multiplyScalar(delta);
-      position.current.add(moveStep);
-      
-      // 3. Update Visuals
+      // Update visual position from simulation state
+      position.current.set(...physicsStepResult.state.position);
       shipRef.current.position.copy(position.current);
-      
+
+      // Handle events
+      for (const event of physicsStepResult.events) {
+        switch (event.type) {
+          case 'planet_collision':
+          case 'out_of_bounds':
+            setStatus(GameStatus.LOST);
+            break;
+          case 'target_reached':
+            setStatus(GameStatus.WON);
+            break;
+        }
+      }
+
       // Update Tracer
       if (state.clock.elapsedTime - lastTracerUpdate.current > 0.1) { // 100ms
-          setTracerPoints(prev => [...prev, position.current.clone()]);
-          lastTracerUpdate.current = state.clock.elapsedTime;
+        setTracerPoints(prev => [...prev, position.current.clone()]);
+        lastTracerUpdate.current = state.clock.elapsedTime;
       }
 
       // Rotate ship to face velocity vector
-      if (velocity.current.lengthSq() > 0.1) {
-          const target = position.current.clone().add(velocity.current);
-          shipRef.current.lookAt(target);
-      }
-      
-      // 4. Check Win Condition
-      const targetPos = new Vector3(...level.targetPosition);
-      if (position.current.distanceTo(targetPos) < (TARGET_RADIUS + SHIP_RADIUS)) {
-          setStatus(GameStatus.WON);
-      }
-      
-      // 5. Check Lost Condition (Too far away)
-      if (position.current.length() > 100) {
-          setStatus(GameStatus.LOST);
+      const velocity = physicsSim.current.getVelocity();
+      if (velocity.lengthSq() > 0.1) {
+        const target = position.current.clone().add(velocity);
+        shipRef.current.lookAt(target);
       }
     }
   });
