@@ -22,9 +22,9 @@ function findWinningShot(level: LevelConfig): number {
   let tests = 0;
 
   // Don't bother with little power.
-  for (let power = 5; power <= MAX_POWER; power++) {
-    for (let p = pMin; p <= pMax; p += 0.2) {
-      for (let y = yMin; y <= yMax; y += 0.2) {
+  for (let power = 5; power <= MAX_POWER; power += 3) {
+    for (let p = pMin; p <= pMax; p += 0.5) {
+      for (let y = yMin; y <= yMax; y += 0.5) {
         tests++;
         const result = simulateShot(level, p, y, power);
         if (result.result === 'won') {
@@ -45,7 +45,7 @@ function findLevelsForTargetPercent(targetPercent: number, maxPlanets: number, m
 
   while (matchingLevels.length < 3 && attempt < maxAttempts) {
     attempt++;
-    const level = generateRandomLevel(attempt, maxPlanets);
+    const level = generateRandomLevel(attempt, 1, maxPlanets, 30);
     const successRate = findWinningShot(level);
 
     const isMatch = Math.abs(successRate - targetPercent) <= tolerance;
@@ -90,7 +90,7 @@ console.log(`Target test percent: ${targetPercent}%`);
 console.log('='.repeat(50));
 console.log();
 
-const maxPlanets = 2;
+const maxPlanets = 10;
 const matchingLevels = findLevelsForTargetPercent(targetPercent, maxPlanets);
 
 if (matchingLevels.length > 0) {

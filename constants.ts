@@ -8,7 +8,7 @@ export const SHIP_RADIUS = 0.5;
 export const TARGET_RADIUS = 1.5;
 
 export const LEVELS: LevelConfig[] = [
-  generateRandomLevel(1, 5),
+  generateRandomLevel(1, 1, 10, 30),
   {
     id: 2,
     name: "The Easy One",
