@@ -36,68 +36,71 @@ function findWinningShot(level: LevelConfig): number {
   return (wins / tests * 100.0);
 }
 
-function findLevelsForTargetPercent(targetPercent: number, maxPlanets: number, maxAttempts: number = 1000): LevelConfig[] {
+function findLevelsForTargetPercent(targetPercent: number, minPlanets: number, maxPlanets: number, maxTargetDistance: number = 30, maxAttempts: number = 1000, logEnabled: Boolean = false): LevelConfig[] {
   const matchingLevels: LevelConfig[] = [];
   const tolerance = 0.2;
   let attempt = 0;
 
-  console.log(`Searching for levels with success rate: ${targetPercent}% ± ${tolerance}%\n`);
+  if (logEnabled)
+    console.log(`Searching for levels with success rate: ${targetPercent}% ± ${tolerance}%\n`);
 
-  while (matchingLevels.length < 3 && attempt < maxAttempts) {
+  while (matchingLevels.length < 1 && attempt < maxAttempts) {
     attempt++;
-    const level = generateRandomLevel(attempt, 1, maxPlanets, 30);
+    const level = generateRandomLevel(attempt, minPlanets, maxPlanets, maxTargetDistance);
     const successRate = findWinningShot(level);
 
     const isMatch = Math.abs(successRate - targetPercent) <= tolerance;
 
     if (isMatch) {
-      console.log(`✓ Attempt ${attempt}: Found match! Success rate: ${successRate.toFixed(3)}%`);
-      console.log(`  Planets: ${level.planets.length}`);
-      console.log(`  Ship: [${level.shipStart.map(n => n.toFixed(1)).join(', ')}]`);
-      console.log(`  Target: [${level.targetPosition.map(n => n.toFixed(1)).join(', ')}]`);
-      console.log(`  Planets config:`);
-      level.planets.forEach((p, i) => {
-        console.log(`    P${i + 1}: pos=[${p.position.map(n => n.toFixed(1)).join(', ')}], r=${p.radius.toFixed(1)}, m=${p.mass.toFixed(1)}`);
-      });
-      console.log();
+      if (logEnabled) {
+        console.log(`✓ Attempt ${attempt}: Found match! Success rate: ${successRate.toFixed(3)}%`);
+        console.log(`  Planets: ${level.planets.length}`);
+        console.log(`  Ship: [${level.shipStart.map(n => n.toFixed(1)).join(', ')}]`);
+        console.log(`  Target: [${level.targetPosition.map(n => n.toFixed(1)).join(', ')}]`);
+        console.log(`  Planets config:`);
+        level.planets.forEach((p, i) => {
+          console.log(`    P${i + 1}: pos=[${p.position.map(n => n.toFixed(1)).join(', ')}], r=${p.radius.toFixed(1)}, m=${p.mass.toFixed(1)}`);
+        });
+        console.log();
+      }
 
       matchingLevels.push(level);
     } else if (attempt % 1 === 0) {
-      console.log(`Attempt ${attempt}: Success rate ${successRate.toFixed(3)}% (looking for ${targetPercent}%)`);
+      console.warn(`Attempt ${attempt}: Success rate ${successRate.toFixed(3)}% (looking for ${targetPercent}%)`);
+
     }
   }
-
-  if (matchingLevels.length === 0) {
-    console.log(`No levels found matching ${targetPercent}% ± ${tolerance}% after ${maxAttempts} attempts.`);
-  } else {
-    console.log(`\nFound ${matchingLevels.length} level(s) matching target success rate.`);
-  }
+  if (logEnabled)
+    if (matchingLevels.length === 0) {
+      console.log(`No levels found matching ${targetPercent}% ± ${tolerance}% after ${maxAttempts} attempts.`);
+    } else {
+      console.log(`\nFound ${matchingLevels.length} level(s) matching target success rate.`);
+    }
 
   return matchingLevels;
 }
 
-console.log(`Level 0: ${findWinningShot(LEVELS[0])}`)
+//console.log(`Level 0: ${findWinningShot(LEVELS[0])}`)
 
 
 let targetPercent = parseFloat(process.argv[2]);
 if (isNaN(targetPercent)) {
   console.log('Usage: npx tsx level_finder.test.ts <targetPercent>');
   console.log('Example: npx tsx level_finder.test.ts 5.0');
-  process.exit(1);
+  process.exit(2);
 }
 
+/*
 console.log(`Target test percent: ${targetPercent}%`);
 console.log('='.repeat(50));
 console.log();
+*/
 
+const minPlanets = 1;
 const maxPlanets = 10;
-const matchingLevels = findLevelsForTargetPercent(targetPercent, maxPlanets);
+const matchingLevels = findLevelsForTargetPercent(targetPercent, minPlanets, maxPlanets, 80, 10);
 
 if (matchingLevels.length > 0) {
-  console.log('\n' + '='.repeat(50));
-  console.log('MATCHING LEVELS CONFIG (for constants.ts):');
-  console.log('='.repeat(50));
-  console.log('export const LEVELS: LevelConfig[] = [');
   matchingLevels.forEach((level, index) => {
     console.log(`  {`);
     console.log(`    id: ${level.id},`);
@@ -110,7 +113,9 @@ if (matchingLevels.length > 0) {
     });
     console.log(`    ],`);
     console.log(`    cameraStart: [${level.cameraStart.join(', ')}]`);
-    console.log(`  }${index < matchingLevels.length - 1 ? ',' : ''}`);
+    console.log(`  }${index < matchingLevels.length - 1 ? ',' : ''},`);
   });
-  console.log('];');
+  process.exit(0);
 }
+
+process.exit(1)

@@ -7,6 +7,21 @@ export const POWER_CHARGE_RATE = 20; // Units per second
 export const SHIP_RADIUS = 0.5;
 export const TARGET_RADIUS = 1.5;
 
+/* 5% success rate.
+  {
+    id: 7,
+    name: "Generated Level 7",
+    shipStart: [0, 0, 0],
+    targetPosition: [0, 0, -59.61969367337683],
+    planets: [
+      { position: [-1.926808901064038, 2.6742144245741066, -34.5028951039112], radius: 3.8, mass: 37.7, color: "#4f86f7" },
+      { position: [4.4189052173516545, -4.552614212719947, -17.672358547779858], radius: 3.6, mass: 36.3, color: "#6ab04c" },
+      { position: [-9.287928399467285, -0.30958972112185457, -68.05415122392495], radius: 2.5, mass: 25.0, color: "#686de0" },
+      { position: [6.749970749308169, -0.37507686988560796, -76.06900032570714], radius: 1.5, mass: 15.4, color: "#6ab04c" }
+    ],
+    cameraStart: [20, 10, 20]
+  },
+*/
 export const LEVELS: LevelConfig[] = [
   generateRandomLevel(1, 1, 10, 30),
   {
